@@ -23,7 +23,7 @@ def initialize_system():
     Инициализирует все компоненты RAG-системы.
     
     Returns:
-        Кортеж (embedding_store, rag_assistant, cache)
+        Кортеж (embedding_store, rag_assistant, cache, top_k, source_filter)
     """
     print("=" * 70)
     print("🚀 ИНИЦИАЛИЗАЦИЯ RAG-АССИСТЕНТА")
@@ -89,7 +89,7 @@ def initialize_system():
         print(f"   Фильтр по источнику: {source_filter}")
     print("=" * 70)
     
-    return embedding_store, rag_assistant, cache
+    return embedding_store, rag_assistant, cache, top_k, source_filter
 
 
 def answer_question(
@@ -258,7 +258,7 @@ def main():
     """
     try:
         # Инициализируем систему
-        embedding_store, rag_assistant, cache = initialize_system()
+        embedding_store, rag_assistant, cache, top_k, source_filter = initialize_system()
         
         # Выбор режима работы
         print("\n" + "=" * 70)
