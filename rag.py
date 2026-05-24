@@ -110,6 +110,7 @@ class RAGAssistant:
         self, 
         query: str, 
         top_k: int = 3,
+        source_filter: Optional[str] = None,
         verbose: bool = True
     ) -> Tuple[str, List[Tuple[str, str, float]]]:
         """
@@ -133,7 +134,11 @@ class RAGAssistant:
         if verbose:
             print(f"\n🔍 Поиск релевантных документов (top_k={top_k})...")
         
-        search_results = self.embedding_store.search(query, top_k=top_k)
+        search_results = self.embedding_store.search(
+            query, 
+            top_k=top_k,
+            source_filter=source_filter
+        )
         
         if verbose and search_results:
             print(f"\n📚 Найдено {len(search_results)} релевантных фрагментов:")

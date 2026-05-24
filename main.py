@@ -11,6 +11,7 @@
 """
 
 import os
+from typing import Optional
 from dotenv import load_dotenv
 from embeddings import EmbeddingStore, get_sample_documents
 from rag import RAGAssistant
@@ -34,6 +35,10 @@ def initialize_system():
     # Конфигурация ProxyAPI (основной вариант)
     api_key = os.getenv("OPENAI_API_KEY")
     base_url = os.getenv("OPENAI_BASE_URL", "https://api.proxyapi.ru/openai/v1")
+    
+    # Настройки поиска (из .env или по умолчанию)
+    top_k = int(os.getenv("TOP_K", 3))
+    source_filter = os.getenv("SOURCE_FILTER", None)
     
     if not api_key:
         print("⚠️  ВНИМАНИЕ: Не найден OPENAI_API_KEY в переменных окружения!")
@@ -79,12 +84,21 @@ def initialize_system():
     print("\n" + "=" * 70)
     print("✅ СИСТЕМА ГОТОВА К РАБОТЕ")
     print(f"   Провайдер: ProxyAPI ({base_url})")
+    print(f"   TOP_K (количество документов): {top_k}")
+    if source_filter:
+        print(f"   Фильтр по источнику: {source_filter}")
     print("=" * 70)
     
     return embedding_store, rag_assistant, cache
 
 
-def answer_question(query: str, rag_assistant: RAGAssistant, cache: ResponseCache) -> str:
+def answer_question(
+    query: str, 
+    rag_assistant: RAGAssistant, 
+    cache: ResponseCache, 
+    top_k: int = 3,
+    source_filter: Optional[str] = None
+) -> str:
     """
     Отвечает на вопрос пользователя с использованием кеша и RAG.
     
@@ -124,7 +138,8 @@ def answer_question(query: str, rag_assistant: RAGAssistant, cache: ResponseCach
     try:
         answer, search_results = rag_assistant.generate_response(
             query=query,
-            top_k=3,
+            top_k=top_k,
+            source_filter=source_filter,
             verbose=True
         )
         
@@ -146,7 +161,7 @@ def answer_question(query: str, rag_assistant: RAGAssistant, cache: ResponseCach
         return error_msg
 
 
-def interactive_mode(rag_assistant: RAGAssistant, cache: ResponseCache):
+def interactive_mode(rag_assistant: RAGAssistant, cache: ResponseCache, top_k: int = 3, source_filter: Optional[str] = None):
     """
     Интерактивный режим общения с ассистентом.
     
@@ -192,7 +207,7 @@ def interactive_mode(rag_assistant: RAGAssistant, cache: ResponseCache):
                 continue
             
             # Обрабатываем вопрос пользователя
-            answer_question(user_input, rag_assistant, cache)
+            answer_question(user_input, rag_assistant, cache, top_k, source_filter)
             
         except KeyboardInterrupt:
             print("\n\n👋 Прервано пользователем. До свидания!")
@@ -201,7 +216,7 @@ def interactive_mode(rag_assistant: RAGAssistant, cache: ResponseCache):
             print(f"\n❌ Ошибка: {str(e)}")
 
 
-def demo_mode(rag_assistant: RAGAssistant, cache: ResponseCache):
+def demo_mode(rag_assistant: RAGAssistant, cache: ResponseCache, top_k: int = 3, source_filter: Optional[str] = None):
     """
     Демонстрационный режим с заранее заготовленными вопросами.
     
@@ -226,7 +241,7 @@ def demo_mode(rag_assistant: RAGAssistant, cache: ResponseCache):
         print(f"ВОПРОС {i} из {len(demo_questions)}")
         print(f"{'#' * 70}")
         
-        answer_question(question, rag_assistant, cache)
+        answer_question(question, rag_assistant, cache, top_k, source_filter)
         
         # Пауза между вопросами (кроме последнего)
         if i < len(demo_questions):
@@ -256,15 +271,15 @@ def main():
         mode = input("Выберите режим (1 или 2, по умолчанию 1): ").strip()
         
         if mode == '2':
-            demo_mode(rag_assistant, cache)
+            demo_mode(rag_assistant, cache, top_k, source_filter)
             
             # Предложить перейти в интерактивный режим
             print("\n" + "=" * 70)
             continue_interactive = input("\nПерейти в интерактивный режим? (y/n): ").strip().lower()
             if continue_interactive in ['y', 'yes', 'д', 'да', '']:
-                interactive_mode(rag_assistant, cache)
+                interactive_mode(rag_assistant, cache, top_k, source_filter)
         else:
-            interactive_mode(rag_assistant, cache)
+            interactive_mode(rag_assistant, cache, top_k, source_filter)
         
     except Exception as e:
         print(f"\n❌ Критическая ошибка: {str(e)}")
