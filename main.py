@@ -6,6 +6,8 @@
 2. Инициализация всех компонентов (кеш, векторная база, RAG)
 3. Добавление примеров документов (при первом запуске)
 4. Интерактивный цикл общения с пользователем
+
+По умолчанию использует ProxyAPI для работы с OpenAI из РФ без VPN.
 """
 
 import os
@@ -29,12 +31,17 @@ def initialize_system():
     # Загружаем переменные окружения из .env файла
     load_dotenv()
     
-    # Проверяем наличие API ключа OpenAI
+    # Конфигурация ProxyAPI (основной вариант)
     api_key = os.getenv("OPENAI_API_KEY")
+    base_url = os.getenv("OPENAI_BASE_URL", "https://api.proxyapi.ru/openai/v1")
+    
     if not api_key:
         print("⚠️  ВНИМАНИЕ: Не найден OPENAI_API_KEY в переменных окружения!")
-        print("   Создайте файл .env и добавьте туда: OPENAI_API_KEY=your_key_here")
-        print("   Или установите переменную окружения в системе.")
+        print("   Создайте файл .env и добавьте туда:")
+        print("   OPENAI_API_KEY=your_proxyapi_key_here")
+        print("   OPENAI_BASE_URL=https://api.proxyapi.ru/openai/v1")
+        print("   ")
+        print("   Получить ключ: https://proxyapi.ru/")
         print()
     
     # 1. Инициализируем кеш для хранения ответов
@@ -47,7 +54,8 @@ def initialize_system():
         collection_name="rag_documents",
         persist_directory="./chroma_db",
         embedding_model="text-embedding-3-small",  # Модель OpenAI для эмбеддингов
-        api_key=api_key
+        api_key=api_key,
+        base_url=base_url
     )
     
     # Проверяем, нужно ли добавить примеры документов
@@ -62,12 +70,15 @@ def initialize_system():
     print("\n[3/3] Инициализация RAG-ассистента...")
     rag_assistant = RAGAssistant(
         embedding_store=embedding_store,
+        api_key=api_key,
+        base_url=base_url,
         model="gpt-3.5-turbo",
         temperature=0.7
     )
     
     print("\n" + "=" * 70)
     print("✅ СИСТЕМА ГОТОВА К РАБОТЕ")
+    print(f"   Провайдер: ProxyAPI ({base_url})")
     print("=" * 70)
     
     return embedding_store, rag_assistant, cache

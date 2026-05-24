@@ -25,7 +25,8 @@ class EmbeddingStore:
         collection_name: str = "documents",
         persist_directory: str = "./chroma_db",
         embedding_model: str = "text-embedding-3-small",
-        api_key: str = None
+        api_key: str = None,
+        base_url: str = "https://api.proxyapi.ru/openai/v1"
     ):
         """
         Инициализация хранилища эмбеддингов.
@@ -34,7 +35,8 @@ class EmbeddingStore:
             collection_name: Имя коллекции в ChromaDB
             persist_directory: Директория для сохранения данных ChromaDB
             embedding_model: Название модели OpenAI для эмбеддингов
-            api_key: API ключ OpenAI (если None, берется из переменной окружения)
+            api_key: API ключ ProxyAPI/OpenAI (если None, берется из переменной окружения)
+            base_url: URL провайдера (по умолчанию ProxyAPI)
         """
         print(f"Инициализация ChromaDB в директории: {persist_directory}")
         
@@ -49,10 +51,16 @@ class EmbeddingStore:
         
         # Инициализируем клиент OpenAI для создания эмбеддингов
         # API ключ берется из параметра или переменной окружения OPENAI_API_KEY
-        self.openai_client = OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
+        # base_url указывает на ProxyAPI для работы из РФ
+        self.openai_client = OpenAI(
+            api_key=api_key or os.getenv("OPENAI_API_KEY"),
+            base_url=base_url or os.getenv("OPENAI_BASE_URL", "https://api.proxyapi.ru/openai/v1")
+        )
         self.embedding_model = embedding_model
+        self.base_url = base_url
         
-        print(f"Модель эмбеддингов: {embedding_model} (OpenAI API)")
+        print(f"Модель эмбеддингов: {embedding_model} (ProxyAPI)")
+        print(f"Endpoint: {base_url}")
         
         # Получаем или создаем коллекцию в ChromaDB
         self.collection = self.client.get_or_create_collection(

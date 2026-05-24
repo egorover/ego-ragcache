@@ -26,6 +26,7 @@ class RAGAssistant:
         self, 
         embedding_store,
         api_key: Optional[str] = None,
+        base_url: str = "https://api.proxyapi.ru/openai/v1",
         model: str = "gpt-3.5-turbo",
         temperature: float = 0.7
     ):
@@ -34,7 +35,8 @@ class RAGAssistant:
         
         Args:
             embedding_store: Экземпляр EmbeddingStore для поиска документов
-            api_key: API ключ OpenAI (если None, берется из переменной окружения)
+            api_key: API ключ ProxyAPI/OpenAI (если None, берется из переменной окружения)
+            base_url: URL провайдера (по умолчанию ProxyAPI)
             model: Название модели OpenAI для генерации ответов
             temperature: Параметр "креативности" модели (0.0 - детерминированный, 1.0 - креативный)
         """
@@ -42,11 +44,16 @@ class RAGAssistant:
         self.model = model
         self.temperature = temperature
         
-        # Инициализируем клиент OpenAI
+        # Инициализируем клиент OpenAI через ProxyAPI
         # API ключ берется из параметра или переменной окружения OPENAI_API_KEY
-        self.client = OpenAI(api_key=api_key or os.getenv("OPENAI_API_KEY"))
+        # base_url указывает на ProxyAPI для работы из РФ без VPN
+        self.client = OpenAI(
+            api_key=api_key or os.getenv("OPENAI_API_KEY"),
+            base_url=base_url or os.getenv("OPENAI_BASE_URL", "https://api.proxyapi.ru/openai/v1")
+        )
         
-        print(f"✓ RAG-ассистент инициализирован (модель: {model})")
+        print(f"✓ RAG-ассистент инициализирован (модель: {model}, провайдер: ProxyAPI)")
+        print(f"  Endpoint: {base_url}")
     
     def _format_context(self, search_results: List[Tuple[str, str, float]]) -> str:
         """

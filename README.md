@@ -9,10 +9,39 @@
 
 ## 🎯 Ключевые особенности форка
 
-* 🇷🇺 **ProxyAPI** — работа с OpenAI из РФ без VPN.
+* 🇷🇺 **ProxyAPI** — работа с OpenAI из РФ без VPN (основной провайдер).
 * ⚡ **Кеширование** — экономия API-запросов (SHA-256).
 * 📦 **Локальная БД** — ChromaDB для семантического поиска.
 * 🛠 **Готов к расширению** — структура под новые модули.
+
+## 🔄 Что изменилось в этом форке
+
+### Интеграция ProxyAPI
+
+**Основное изменение:** Project теперь использует **ProxyAPI** по умолчанию для работы с OpenAI API из России без VPN.
+
+**Технические изменения:**
+
+1. **OpenAI клиент с base_url** — все запросы к OpenAI теперь отправляются через ProxyAPI endpoint:
+   ```python
+   client = OpenAI(
+       api_key=os.getenv("OPENAI_API_KEY"),
+       base_url="https://api.proxyapi.ru/openai/v1"
+   )
+   ```
+
+2. **Поддержка альтернативных провайдеров** — можно переключиться на прямой OpenAI или другие совместимые API через переменную окружения `OPENAI_BASE_URL`.
+
+3. **Изменённые модули:**
+   - `main.py` — инициализация с конфигурацией ProxyAPI
+   - `embeddings.py` — создание эмбеддингов через ProxyAPI
+   - `rag.py` — генерация ответов через ProxyAPI
+
+4. **Переменные окружения:**
+   ```env
+   OPENAI_API_KEY=your_proxyapi_key_here
+   OPENAI_BASE_URL=https://api.proxyapi.ru/openai/v1
+   ```
 
 ## 🎯 Ключевые особенности форка
 
@@ -34,7 +63,26 @@ OPENAI_API_KEY=your_proxyapi_key_here
 OPENAI_BASE_URL=https://api.proxyapi.ru/openai/v1
 ```
 
-Получить ключ: [proxyapi.ru](https://proxyapi.ru/).
+**Получить ключ ProxyAPI:** [proxyapi.ru](https://proxyapi.ru/)
+
+### Настройка переменных окружения
+
+| Переменная | Описание | Значение по умолчанию |
+|------------|----------|----------------------|
+| `OPENAI_API_KEY` | API ключ ProxyAPI | **Обязательно** |
+| `OPENAI_BASE_URL` | Endpoint провайдера | `https://api.proxyapi.ru/openai/v1` |
+| `MODEL_NAME` | Модель для генерации | `gpt-3.5-turbo` |
+| `TEMPERATURE` | Креативность (0.0-1.0) | `0.7` |
+| `EMBEDDING_MODEL` | Модель для эмбеддингов | `text-embedding-3-small` |
+
+**Альтернативные провайдеры:**
+```env
+# Прямой OpenAI (требуется VPN)
+OPENAI_BASE_URL=https://api.openai.com/v1
+
+# Другие совместимые endpoint'ы
+# OPENAI_BASE_URL=https://your-custom-proxy/v1
+```
 
 ## 🚀 Запуск и Структура
 
@@ -50,18 +98,33 @@ python main.py
 
 ## 🔧 Архитектурные детали
 
-Инициализация клиента OpenAI использует `base_url` для ProxyAPI:
+### Интеграция ProxyAPI
+
+Инициализация клиента OpenAI с `base_url` для ProxyAPI:
 
 ```python
+from openai import OpenAI
+
 client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
-    base_url=os.getenv("OPENAI_BASE_URL")
+    base_url=os.getenv("OPENAI_BASE_URL", "https://api.proxyapi.ru/openai/v1")
 )
 ```
 
-**Спецификации:**
-*   Модель: `text-embedding-3-small`
-*   Чанкинг: 500/50
+**Изменённые модули:**
+
+| Модуль | Изменения |
+|--------|-----------|
+| `main.py` | Добавлена конфигурация `base_url`, проверка `OPENAI_BASE_URL` |
+| `embeddings.py` | `EmbeddingStore` принимает `base_url`, создаёт `OpenAI` клиент с endpoint'ом |
+| `rag.py` | `RAGAssistant` принимает `base_url`, создаёт `OpenAI` клиент с endpoint'ом |
+
+### Спецификации
+
+*   **Модель эмбеддингов**: `text-embedding-3-small`
+*   **Модель LLM**: `gpt-3.5-turbo` (настраивается)
+*   **Чанкинг**: 500/50 (размер/перекрытие)
+*   **Endpoint**: `https://api.proxyapi.ru/openai/v1`
 
 ## 🛠 Roadmap
 
