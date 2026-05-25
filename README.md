@@ -43,13 +43,6 @@
    OPENAI_BASE_URL=https://api.proxyapi.ru/openai/v1
    ```
 
-## 🎯 Ключевые особенности форка
-
-* 🇷🇺 **ProxyAPI** — работа с OpenAI из РФ без VPN.
-* ⚡ **Кеширование** — экономия API-запросов (SHA-256).
-* 📦 **Локальная БД** — ChromaDB для семантического поиска.
-* 🛠 **Готов к расширению** — структура под новые модули.
-
 ## 📦 Быстрый старт
 
 1. **Клон**: `git clone https://github.com/egorover/ego-ragcache`
@@ -156,10 +149,6 @@ client = OpenAI(
 - [ ] Интеграция Claude/DeepSeek через ProxyAPI
 - [ ] Авто-парсер документов (PDF/MD)
 
-## 🤝 Контакты
-
-PR и Issues приветствуются в репозитории [ego-ragcache](https://github.com/egorover/ego-ragcache).
-
 ## 📊 Технические детали
 
 ### Эмбеддинги
@@ -184,11 +173,6 @@ PR и Issues приветствуются в репозитории [ego-ragcach
 - **Тип**: JSON файл
 - **Ключ**: SHA-256 хеш нормализованного запроса
 - **Расположение**: ./cache.json
-
-## 🛠 Roadmap
-
-- [ ] Интеграция Claude/DeepSeek через ProxyAPI
-- [ ] Авто-парсер документов (PDF/MD)
 
 ## 🤝 Контакты
 
